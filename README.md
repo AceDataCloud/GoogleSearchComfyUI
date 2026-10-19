@@ -1,12 +1,18 @@
 # Google Search for ComfyUI by Ace Data Cloud
 
-Use the current [GoogleSearchDify](https://github.com/AceDataCloud/GoogleSearchDify) tool contracts as independent ComfyUI nodes. This package exposes all **1 Dify tool definitions** and **0 fixed model IDs** from source snapshot `b6291ea`. It calls the hosted Ace Data Cloud API; no local model or GPU is needed. Paid actions consume Credits at the [current service price](https://platform.acedata.cloud/models?utm_source=opensource&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_pricing).
+Search the web, images, news, maps, places or videos and inspect structured results in ComfyUI. This independent package calls a hosted API; no local model or GPU is needed. Check your access and [current service pricing](https://platform.acedata.cloud/models?utm_source=comfyui&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_pricing) before any paid action.
 
-[简体中文](docs/README.zh-CN.md) · [Ace Data Cloud](https://platform.acedata.cloud?utm_source=opensource&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_home) · [Issues](https://github.com/AceDataCloud/GoogleSearchComfyUI/issues)
+[简体中文](docs/README.zh-CN.md) · [Ace Data Cloud](https://platform.acedata.cloud?utm_source=comfyui&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_home) · [Issues](https://github.com/AceDataCloud/GoogleSearchComfyUI/issues)
 
 ## Install
 
-Open **Manager → Custom Nodes Manager** and search **Ace Data Cloud**. Select **Google Search by Ace Data Cloud**, confirm publisher **acedatacloud** and source repository [`AceDataCloud/GoogleSearchComfyUI`](https://github.com/AceDataCloud/GoogleSearchComfyUI), then click **Install**. In **Select Version**, explicitly select the approved Registry stable release **0.1.0**. The normal dialog may initially highlight **nightly**; do not accept it for this stable-release tutorial. Keep dependency installation enabled. After **Restart Required**, restart ComfyUI and refresh the browser. Registry ID: `google-search`.
+Open the official [Google Search by Ace Data Cloud Registry page](https://registry.comfy.org/nodes/google-search), or search **Google Search** in **Manager → Custom Nodes Manager**. Verify the exact Ace publisher/repository below; use **Ace Data Cloud** as a fallback if the service spelling does not return it. Select **Google Search by Ace Data Cloud**, confirm publisher **acedatacloud** and source repository [`AceDataCloud/GoogleSearchComfyUI`](https://github.com/AceDataCloud/GoogleSearchComfyUI), then click **Install**. In **Select Version**, explicitly select the approved Registry stable release **0.1.0**. The normal dialog may initially highlight **nightly**; do not accept it for this stable-release tutorial. Keep dependency installation enabled. After **Restart Required**, restart ComfyUI and refresh the browser. Registry ID: `google-search`.
+
+![Actual Manager brand-search list](docs/images/manager-discovery.png)
+
+![Actual Manager enabled-state readback](docs/images/manager-installed.png)
+
+These are real **2026-10-16 Linux ComfyUI0.41.0** brand-search/installed-state screenshots, not a new service-term search or a paid request. See [sources and limits](docs/screenshot-sources.json).
 
 This Registry stable installation was verified on **2026-10-16 with original ComfyUI 0.41.0 on Linux CPU**. That test did not submit a generation or chat request. Newer host versions and each paid action require their own checks; model availability and price remain subject to the current service rules.
 
@@ -14,9 +20,26 @@ For local source testing, clone this repository into `ComfyUI/custom_nodes/Googl
 
 ## Key and tool inputs
 
-1. Sign in to [Ace Data Cloud → Applications](https://platform.acedata.cloud/console/applications?utm_source=opensource&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_api_key). If your account has no General application, choose **Initialize General Application**.
+### Copy or create your API Token
+
+Sign in/register and initialize **Applications → General application** if needed. Copy an existing permitted API Token, or use **Manage Keys → Create** for a dedicated `ComfyUI` key. Check service access, expiry/Allowed APIs, Credits balance and current price first.
+
+![Ace Applications: copy Token or Manage Keys](docs/images/get-api-key-en.png)
+
+![Ace Create Key dialog](docs/images/create-api-key-en.png)
+
+These masked **2026-10-08** Ace Console images are reused from SunoDify. The sample name `Dify tutorial` should be `ComfyUI` here; no credential was created for this guide. Configure only the Token string in the **actual process that launches ComfyUI** (`ACEDATACLOUD_API_KEY`), then restart. There is no Key widget in these nodes; never paste it into a prompt, JSON parameter, workflow or screenshot. An export in another terminal does not configure an already-running Desktop process.
+
+1. Sign in to [Ace Data Cloud → Applications](https://platform.acedata.cloud/console/applications?utm_source=comfyui&utm_medium=referral&utm_campaign=evergreen&utm_content=googlesearchcomfyui_readme_en_api_key). If your account has no General application, choose **Initialize General Application**.
 2. Open **General application** and check access to the service used by this package. A service-specific application key is limited to that service. Copy an existing API key, or choose **Manage Keys → Create** for a separate key named `ComfyUI`.
 3. Copy only the token string, without `Bearer ` or quotation marks. A platform management token is not the API key these nodes use. If you enable **Allowed APIs**, include every submission and task-query path used by your workflow. Check current pricing and available Credits before a paid action.
+
+For a terminal launch, set the Token privately and start ComfyUI from that same terminal:
+
+```bash
+export ACEDATACLOUD_API_KEY='paste-your-private-token-here'
+python main.py --cpu
+```
 
 Set `ACEDATACLOUD_API_KEY` (or `ACEDATACLOUD_API_TOKEN`) in the **ComfyUI process environment** and restart. Keep the key out of workflow JSON, screenshots, issues, and the repository.
 
@@ -26,9 +49,22 @@ Each Dify tool has its own node. The model and action selectors expose every fix
 | --- | --- | --- | --- |
 | `serp_google` | `query` | — | — |
 
-Import [01-configure-and-run.json](examples/01-configure-and-run.json) with **File → Open**, fill its placeholder task ID or JSON parameters, then run. The example is a configuration template; it does not submit a paid request by itself. Query the same task ID until `status` is `succeeded`. The node returns status, task ID, all media URLs as JSON, first media URL, normalized result JSON, and trace ID. Connect a completed Ace CDN URL to the provided JSON/STRING loader where applicable.
+## First search and synchronous result
 
-Check current service pricing before a paid run. Read-only task queries and media downloads should not generate a new paid task. Destructive Dify actions still require an explicit `confirm: true` in JSON. See [privacy notes](docs/PRIVACY.md).
+Import [01-configure-and-run.json](examples/01-configure-and-run.json), enter a nonempty `query` such as `ComfyUI workflow documentation` (or set `parameters_json` to `{"query":"ComfyUI workflow documentation","type":"search","number":3}`). Confirm current search pricing and access before running once. Search can consume Credits even though it is not model generation.
+
+The response is synchronous structured search data. Inspect `result_json`, titles/URLs and result fields; this package has **no task ID polling or native media loader**. An empty `{}` example is not a complete search request. Do not wait for an invented media status or run a generation node. Connect `result_json` to Preview as Text where useful.
+
+## Troubleshooting
+
+| Symptom | Action |
+| --- | --- |
+| Missing Key /401 | Configure the actual ComfyUI launch-process API Token and restart; a platform management Token is not an API Key. |
+| 403 | Read the returned reason and check service entitlement, allowed paths, expiry or content restriction; do not blindly resubmit. |
+| 429 | Wait for rate limits; keep any accepted task ID and avoid duplicate paid submissions. |
+| Invalid JSON/model/input | Correct the named field according to the tool table; `{}`/example URLs are placeholders, not a complete paid request. |
+| Submit timeout/5xx | Inspect request history/trace ID before another paid submission. |
+| Unexpected result or media failure | Follow this service's synchronous/async section, confirm a completed real media URL where supported, and inspect Console. No result is fabricated from pending status. |
 
 ## Development
 
@@ -38,3 +74,5 @@ python -m py_compile __init__.py client.py api_contracts.py nodes.py
 ```
 
 `pyproject.toml` declares short Registry ID `google-search`, publisher `acedatacloud`, and a 400×400 proportional resize of the [canonical Ace logo](https://cdn.acedata.cloud/assets/logo.png).
+
+Disable auto-queue before paid chat, search or transformation requests. Check current access and price, run explicitly once, and inspect request history before resubmitting a timed-out request.
